@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
-import { createApp } from '../src/app.js';
+import { createApp } from '../src/createApp.js';
 import { env } from '../src/config/env.js';
 import { User } from '../src/models/User.model.js';
 import { api, authCookie, createUser, DEFAULT_PASSWORD } from './helpers.js';

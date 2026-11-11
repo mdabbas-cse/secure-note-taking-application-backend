@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
-import { createApp } from '../src/app.js';
+import { createApp } from '../src/createApp.js';
 import { AUTH_COOKIE_NAME } from '../src/middleware/authenticate.js';
 import { CSRF_HEADER, CSRF_HEADER_VALUE } from '../src/middleware/csrf.js';
 import { Note } from '../src/models/Note.model.js';

@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { z } from 'zod';
+import { ConfigError } from './ConfigError.js';
 
 const booleanString = z.enum(['true', 'false']).transform((value) => value === 'true');
 
@@ -107,10 +108,12 @@ export type SameSite = 'strict' | 'lax' | 'none';
 export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
   const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
-    const details = parsed.error.issues
-      .map((issue) => `  ${issue.path.join('.') || 'env'}: ${issue.message}`)
-      .join('\n');
-    throw new Error(`Invalid environment configuration:\n${details}`);
+    throw new ConfigError(
+      parsed.error.issues.map((issue) => ({
+        field: issue.path.join('.') || 'env',
+        message: issue.message,
+      })),
+    );
   }
 
   const raw = parsed.data;

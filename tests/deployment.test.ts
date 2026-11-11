@@ -1,4 +1,7 @@
+import request from 'supertest';
 import { describe, expect, it } from 'vitest';
+import vercelEntry, { createMisconfiguredApp } from '../src/app.js';
+import { ConfigError } from '../src/config/ConfigError.js';
 import { createConnectionCache } from '../src/config/database.js';
 import { loadEnv } from '../src/config/env.js';
 import { authCookieOptions } from '../src/modules/auth/auth.cookies.js';
@@ -30,6 +33,42 @@ describe('GET /api/health', () => {
   it('serves a small JSON index at the root instead of a 404', async () => {
     const res = await rawApi().get('/').expect(200);
     expect(res.body.data).toEqual({ health: '/api/health' });
+  });
+});
+
+describe('Vercel entry point (src/app.ts default export)', () => {
+  it('delegates every request to the real application', async () => {
+    const res = await request(vercelEntry).get('/api/health').expect(200);
+    expect(res.body.data).toMatchObject({ status: 'ok', database: 'connected' });
+    await request(vercelEntry).get('/api/unknown').expect(404);
+  });
+
+  it('answers with a JSON 500 naming invalid variables instead of crashing', async () => {
+    let configError: unknown;
+    try {
+      loadEnv(productionEnv({ FRONTEND_URL: undefined, JWT_SECRET: 'too-short-secret-value' }));
+    } catch (error) {
+      configError = error;
+    }
+    expect(configError).toBeInstanceOf(ConfigError);
+
+    const fallback = createMisconfiguredApp(configError as ConfigError);
+    const res = await request(fallback).get('/api/health').expect(500);
+    expect(res.headers['cache-control']).toBe('no-store');
+    expect(res.body).toEqual({
+      success: false,
+      message: 'Server misconfigured: invalid environment variables. See the deployment logs.',
+      errors: [
+        { field: 'JWT_SECRET', message: 'JWT_SECRET must be at least 32 characters' },
+        {
+          field: 'FRONTEND_URL',
+          message: 'FRONTEND_URL is required in production (the exact frontend origin)',
+        },
+      ],
+    });
+    // Variable names only: no values (secret, URI) are ever echoed.
+    expect(JSON.stringify(res.body)).not.toMatch(/too-short-secret-value|user:pass|mongodb\+srv/);
+    await request(fallback).post('/api/auth/login').send({}).expect(500);
   });
 });
 
