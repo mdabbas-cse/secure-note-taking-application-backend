@@ -1,0 +1,30 @@
+{
+  // Base config, also the one Vercel's Express builder compiles with.
+  // "bundler" resolution: Vercel's builder resolves imports without an ESM/CJS
+  // resolution mode, which under NodeNext picks dual packages' CommonJS typings
+  // (e.g. helmet's .d.cts) for our ESM code and fails the deploy. "bundler"
+  // always uses the `import` typings. Strict Node ESM semantics (explicit .js
+  // extensions, CJS interop) are still enforced by tsconfig.node.json, which
+  // `npm run typecheck` runs as well.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "sourceMap": true
+  },
+  "include": ["src", "tests", "scripts", "vitest.config.ts"]
+}

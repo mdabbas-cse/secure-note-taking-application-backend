@@ -1,0 +1,10 @@
+{
+  // Type-check with Node's real ESM rules (NodeNext): relative imports must carry
+  // .js extensions and CommonJS interop is checked exactly as Node runs it.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true
+  }
+}
